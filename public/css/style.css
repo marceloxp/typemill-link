@@ -1,0 +1,12 @@
+a.external:after {
+    content: "";
+    display: inline-flex;
+    height: 10px;
+    margin-left: 4px;
+    -webkit-mask-image: url(../images/external.svg);
+    mask-image: url(../images/external.svg);
+    -webkit-mask-size: cover;
+    mask-size: cover;
+    width: 10px;
+    background-color: #444;
+}
