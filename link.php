@@ -5,6 +5,9 @@ use \Typemill\Plugin;
 
 class link extends Plugin
 {
+  # [:link text="Google" id="link-google" class="my-custom-class" target="_blank" url="https://google.com.br/":]
+  # [:link text="Google" id="link-google" target="_blank" url="https://google.com.br/":]
+  # [:link text="Google" target="_blank" url="https://google.com.br/":]
   # [:link text="Google" target="_blank" url="https://google.com.br/":]
   # [:link text="Google" url="https://google.com.br/":]
   # [:link text="Google":]
@@ -21,10 +24,7 @@ class link extends Plugin
 
   public function onTwigLoaded()
   {
-    if(!$this->adminpath)
-    {
-        $this->addCSS('/link/public/css/style.css');
-    }
+    $this->addCSS('/link/public/css/style.css');
   }
 
   # if typemill found a shortcode and fires the event
@@ -47,16 +47,37 @@ class link extends Plugin
         $shortcode->stopPropagation();
 
         $params = $shortcodeArray['params'];
+
+        $classes = [];
+        $target = isset($params['target']) ? $params['target'] : '_self';
+        $class = isset($params['class']) ? $params['class'] : '';
+        $text = isset($params['text']) ? $params['text'] : 'Link';
+        $url = isset($params['url']) ? $params['url'] : '#';
+         
         // create string $class variable from params if target is set to _blank
-        $class = isset($params['target']) && $params['target'] == '_blank' ? 'class="external"' : '';
+        if (!empty($class)) {
+          $classes[] = $class;
+        }
+        if ($target === '_blank') {
+          $classes[] = 'external';
+        }
+        $class = sprintf('class="%s"', implode(' ', $classes));
+        
+        unset($params['text']);
+        unset($params['class']);
+        unset($params['target']);
+        unset($params['url']);
 
-        // create string $url variable from params if url is set
-        $url = isset($params['url']) ? $params['url'] : '';
-        // set $url to "#" if url is not set
-        $url = $url == '' ? '#' : $url;
+        if (!empty($params)) {
+          $params = array_map(function($key, $value) {
+            return sprintf('%s="%s"', $key, $value);
+          }, array_keys($params), $params);
+          $params = implode(' ', $params);
+        } else {
+          $params = '';
+        }
 
-        $target = array_key_exists('target', $params) ? $params['target'] : '_self';
-        $html = '<a ' . $class . ' href="' . $url . '" target="' . $target . '">' . $params['text'] . '</a>';
+        $html = '<a ' . $params . ' ' . $class . ' href="' . $url . '" target="' . $target . '">' . $text . '</a>';
 
         # and return a html-snippet that replaces the shortcode on the page.
         $shortcode->setData($html);
